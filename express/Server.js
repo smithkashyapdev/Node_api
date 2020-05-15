@@ -1,7 +1,8 @@
 const express=require('express')
 const fsWatcher=require('fs')
 const app=express()
-
+const productAPI=require('./product/prod')
+const bookAPI=require('./book/bookmanager')
 //create server is already done by express framework
 app.get('', function (req, res) {
     res.send('Hello World!')
@@ -59,5 +60,8 @@ app.get('/flights/:From-:To', function (req, res) {
     res.send(req.params)
 })
 
+app.use('/product/prod', productAPI)
+
+app.use('/book', bookAPI)
 
 app.listen(7000)
