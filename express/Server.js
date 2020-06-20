@@ -3,10 +3,31 @@ const fsWatcher=require('fs')
 const app=express()
 const productAPI=require('./product/prod')
 const bookAPI=require('./book/bookmanager')
-//create server is already done by express framework
+const envVariable=require('dotenv')
+const loginMiddleware=require('./middleware/Middleware')
+const userCredential=require('./login/userCredentialAPI')
+var bodyParser = require('body-parser')
+var urlencodedParser = bodyParser.urlencoded({ extended: false })
+var mongoose = require("mongoose");
+// create application/json parser
+// create application/x-www-form-urlencoded parser
+envVariable.config()
+mongoose.connect('mongodb+srv://'+process.env.DB_USER+':'+process.env.DB_PASS+'@node-rest-apis.k5rqp.mongodb.net/test',{ useNewUrlParser: true } )
+
+const db = mongoose.connection;
+
+db.on("error", error => console.log("server--->"+error));
+db.once("open", () => console.log("connection to db established"));
+
+app.use(express.json());
+app.use(urlencodedParser);
+app.use(loginMiddleware)
+
 app.get('', function (req, res) {
     res.send('Hello World!')
 })
+
+
 
 app.post('/', function (req, res) {
 
@@ -61,7 +82,14 @@ app.get('/flights/:From-:To', function (req, res) {
 })
 
 app.use('/product/prod', productAPI)
+app.use('/user',userCredential)
 
-app.use('/book', bookAPI)
+var customMiddleware = function (req, res, next) {
+    req.requestTime = Date.now()
+    console.log('customMiddleware')
+    next()
+}
+
+app.use('/book', customMiddleware,bookAPI)
 
 app.listen(7000)
